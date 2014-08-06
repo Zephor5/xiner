@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Welcome{% endblock %}
+{% block body %}{% verbatim %}
+<div ng-app="xiner-slide" class="container">
+	<div ng-controller="SlideController" class="row"><div ng-repeat="post in posts" ng-switch="post.cat" class="col-md-3 slide-atom">
+		<div ng-switch-when="w"><span ng-bind="post.words" class="words"></span>
+			<div class="meta"><span ng-bind="post.username" class="pull-left user"></span><span ng-bind="post.createtime" class="pull-right time"></span><span class="clearfix"></span></div>
+		</div>
+		<div ng-switch-when="p"><img ng-src="{{post.url}}" class="img"><span ng-bind="post.words" class="desc"></span>
+			<div class="meta"><span ng-bind="post.username" class="pull-left user"></span><span ng-bind="post.createtime" class="pull-right time"></span><span class="clearfix"></span></div>
+		</div>
+		<div ng-switch-when="v"><img ng-src="{{post.url}}"><span ng-bind="post.words"></span>
+			<div class="meta"><span ng-bind="post.username" class="pull-left user"></span><span ng-bind="post.createtime" class="pull-right time"></span><span class="clearfix"></span></div>
+		</div>
+	</div></div>
+</div>
+{% endverbatim %}{% endblock %}
+{% block scripts %}
+<script src="//xiner.qiniudn.com/static/ng-infinite-scroll.min.js"></script>
+<script>
+var myApp = angular.module('xiner-slide', ['infinite-scroll']),
+	infos = {{ posts|safe }},
+	posts = [];
+/*
+ *友好的时间显示
+ *一定时间内显示为xxx前，一定时间外显示为具体时间
+ */
+function niceTimeStr( dtstr ){
+	var now = new Date(),
+		dt = new Date(dtstr),
+		tem = now-dt,
+		y,h;
+	if (tem<60000)
+		return Math.round(tem/1000)+'秒前';
+	if(tem<3600000)
+		return Math.round(tem/60000)+'分前';
+	if(tem<36000000)
+		return Math.round(tem/600000)+'小时前';
+	y=dt.getFullYear();
+	h=dt.getHours();
+	return (now.getFullYear() === y?'':(y+'年'))+(dt.getMonth()+1)+'月'+dt.getDate()+'日 '+(h>12?('下午'+(h-12)):'上午'+h)+':'+dt.getMinutes();
+}
+
+/*
+ *取颜色值随机数0~255
+ */
+function randC(){
+	return Math.floor(Math.random()*256);
+}
+
+(function(){
+	var post,f;
+	for (var i = 0; i < infos.length; i++) {
+		post = {};
+		post['id'] = infos[i].pk;
+		f = infos[i].fields;
+		post['cat'] = f.cat;
+		post['name'] = f.name;
+		post['words'] = f.words;
+		if( f.cat === 'p' ){
+			post['url'] = 'http://xiner.qiniudn.com'+f.url+'?imageView2/0/w/300/h/200'
+		}
+		else{
+			post['url'] = f.url;
+		}
+		post['username'] = f.user.fields.user.fields.username;
+		// post['user']['username'] = f.user.fields.user.fields.username;
+		// post['user']['name'] = f.user.fields.user.fields.last_name+f.user.fields.user.fields.first_name;
+		// post['user']['weichat'] = f.user.fields.weichat;
+		// post['user']['phone'] = f.user.fields.phone;
+		// post['user']['email'] = f.user.fields.user.fields.email;
+		// post['user']['last_login'] = 
+		post['createtime'] = niceTimeStr(f.createtime);
+		posts.push(post);
+	}
+})();
+console.log(posts);
+// test = posts;
+myApp.controller("SlideController", function($scope, $http){
+	$scope.posts = posts;
+});
++function($){$(function(){
+	$('.slide-atom .words').each(function(){
+		$(this).css('background-color','rgba('+randC()+','+randC()+','+randC()+',0.4)');
+	});
+});}(jQuery);
+</script>
+{% endblock %}

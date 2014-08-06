@@ -1,0 +1,30 @@
+span{
+	display: inline-block;
+}
+
+.slide-atom>div{
+	overflow: hidden;
+	position: relative;
+}
+
+.slide-atom .words{
+	display: block;
+	word-wrap: break-word;
+	font-size: 22px;
+	text-indent: 44px;
+	padding: 10px;
+	height: 200px;
+}
+
+.slide-atom .img{
+	height: 200px;
+}
+
+.slide-atom .desc{
+	position: absolute;
+	bottom: 20px;
+	left: 0;
+	background-color: rgba(255,255,255,0.6);
+	width:100%;
+	text-indent: 28px;
+}
