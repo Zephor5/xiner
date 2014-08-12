@@ -1,25 +1,13 @@
 #coding=utf-8
-import json
 from django.core import serializers
-from django.db import connection
 from django.shortcuts import render,redirect
-from members.models import Member
 from info.models import Info
 
-_info_relation = {
-        'user':{
-            'relations':{
-                'user':{
-                    'fields':('username',)#'first_name','last_name','email','last_login')
-                }
-            },
-            'fields':('user',)
-        }
-    }
+from utils import _info_relation
 
 def index(request):
     context = {
-        'posts':serializers.serialize('json', Info.objects.order_by('-createtime'), indent=4, relations=_info_relation)
+        # 'posts':serializers.serialize('json', Info.objects.order_by('-createtime')[:5], indent=4, relations=_info_relation)
     }
     return render(request, 'index.html', context)
 

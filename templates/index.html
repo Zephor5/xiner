@@ -1,26 +1,61 @@
 {% extends "base.html" %}
 {% block title %}Welcome{% endblock %}
 {% block body %}{% verbatim %}
-<div ng-app="xiner-slide" class="container">
-	<div ng-controller="SlideController" class="row"><div ng-repeat="post in posts" ng-switch="post.cat" class="col-md-3 slide-atom">
-		<div ng-switch-when="w"><span ng-bind="post.words" class="words"></span>
-			<div class="meta"><span ng-bind="post.username" class="pull-left user"></span><span ng-bind="post.createtime" class="pull-right time"></span><span class="clearfix"></span></div>
+<div ng-controller="TabController as tc">
+<shortcut></shortcut>
+<div class="slide-nav"><ul>
+	<li ng-class="{active: active[0]}" ng-click="tc.select($event,0)"></li>
+	<li ng-class="{active: active[1]}" ng-click="tc.select($event,1)"></li>
+	<li ng-class="{active: active[2]}" ng-click="tc.select($event,2)"></li>
+</ul></div>
+<div class="main tab-content">
+	<div ng-class="{active: active[0]}" ng-controller="SlideController" class="container tab-pane xiner-slide">
+		<div class="row" infinite-scroll="myPagingFunction()" infinite-scroll-distance="3"><div ng-repeat="post in posts" ng-switch="post.cat" class="col-md-3 slide-atom">
+			<div ng-switch-when="w">
+				<span ng-bind="post.words" class="words" my-post-repeat-directive></span>
+				<div class="meta"><span ng-bind="post.username" class="pull-left user"></span><span ng-bind="post.createtime" class="pull-right time"></span><span class="clearfix"></span></div>
+			</div>
+			<div ng-switch-when="p">
+				<img ng-src="{{post.url}}" class="img"><span ng-bind="post.words" class="desc"></span>
+				<div class="meta"><span ng-bind="post.username" class="pull-left user"></span><span ng-bind="post.createtime" class="pull-right time"></span><span class="clearfix"></span></div>
+			</div>
+			<div ng-switch-when="v">
+				<img ng-src="{{post.url}}"><span ng-bind="post.words"></span>
+				<div class="meta"><span ng-bind="post.username" class="pull-left user"></span><span ng-bind="post.createtime" class="pull-right time"></span><span class="clearfix"></span></div>
+			</div>
+		</div></div>
+	</div>
+	<div ng-class="{active: active[1]}" ng-controller="MembersController" class="container tab-pane xiner-members">
+		<div class="row">
+			<div ng-repeat="member in members" class="col-md-3 card-member"></div>
 		</div>
-		<div ng-switch-when="p"><img ng-src="{{post.url}}" class="img"><span ng-bind="post.words" class="desc"></span>
-			<div class="meta"><span ng-bind="post.username" class="pull-left user"></span><span ng-bind="post.createtime" class="pull-right time"></span><span class="clearfix"></span></div>
-		</div>
-		<div ng-switch-when="v"><img ng-src="{{post.url}}"><span ng-bind="post.words"></span>
-			<div class="meta"><span ng-bind="post.username" class="pull-left user"></span><span ng-bind="post.createtime" class="pull-right time"></span><span class="clearfix"></span></div>
-		</div>
-	</div></div>
-</div>
+	</div>
+	<div ng-class="{active: active[2]}" class="container tab-pane "></div>
+</div></div>
 {% endverbatim %}{% endblock %}
 {% block scripts %}
 <script src="//xiner.qiniudn.com/static/ng-infinite-scroll.min.js"></script>
 <script>
-var myApp = angular.module('xiner-slide', ['infinite-scroll']),
-	infos = {{ posts|safe }},
-	posts = [];
+var _load_lock = false;
+var myApp = angular.module('xiner', ['ngAnimate','ui.bootstrap','infinite-scroll'])
+	.directive('myPostRepeatDirective',function(){
+		return function($scope,elem,attrs){
+			elem.css('background-color','rgba('+randC()+','+randC()+','+randC()+',0.4)');
+		}
+	});
+
+myApp.directive('shortcut', function() {
+	return {
+		restrict: 'E',
+		replace: true,
+		scope: true,
+		link: function(scope, iElement, iAttrs){
+			jQuery(document).on('keydown', function(e){
+				 scope.$apply(scope.keyPressed(e));
+			 });
+		}
+	}
+});
 /*
  *友好的时间显示
  *一定时间内显示为xxx前，一定时间外显示为具体时间
@@ -29,16 +64,18 @@ function niceTimeStr( dtstr ){
 	var now = new Date(),
 		dt = new Date(dtstr),
 		tem = now-dt,
-		y,h;
+		y,h,m;
 	if (tem<60000)
 		return Math.round(tem/1000)+'秒前';
 	if(tem<3600000)
 		return Math.round(tem/60000)+'分前';
 	if(tem<36000000)
-		return Math.round(tem/600000)+'小时前';
+		return Math.round(tem/3600000)+'小时前';
 	y=dt.getFullYear();
 	h=dt.getHours();
-	return (now.getFullYear() === y?'':(y+'年'))+(dt.getMonth()+1)+'月'+dt.getDate()+'日 '+(h>12?('下午'+(h-12)):'上午'+h)+':'+dt.getMinutes();
+	m=dt.getMinutes()+(dt.getSeconds()>30?1:0);
+	m=m<10?('0'+m):m;
+	return (now.getFullYear() === y?'':(y+'年'))+(dt.getMonth()+1)+'月'+dt.getDate()+'日 '+(h>12?('下午'+(h-12)):'上午'+h)+':'+m;
 }
 
 /*
@@ -48,41 +85,92 @@ function randC(){
 	return Math.floor(Math.random()*256);
 }
 
-(function(){
-	var post,f;
-	for (var i = 0; i < infos.length; i++) {
-		post = {};
-		post['id'] = infos[i].pk;
-		f = infos[i].fields;
-		post['cat'] = f.cat;
-		post['name'] = f.name;
-		post['words'] = f.words;
-		if( f.cat === 'p' ){
-			post['url'] = 'http://xiner.qiniudn.com'+f.url+'?imageView2/0/w/300/h/200'
+myApp.controller('TabController', function($scope){
+	$scope.active = [true,false,false];
+	$scope.a_index = 0;
+	this.select = function(evt,index){
+		//console.log(index,evt);
+		if( index === $scope.a_index ) return;
+		$scope.active[$scope.a_index] = false;
+		$scope.a_index = index;
+		$scope.active[index] = true;
+	};
+	function shift_i(is_l){
+		$scope.active[$scope.a_index] = false;
+		if (is_l) $scope.a_index-- ;
+		else $scope.a_index++ ;
+		if ($scope.a_index<0){
+			$scope.a_index = $scope.active.length-1;
 		}
-		else{
-			post['url'] = f.url;
+		else if ($scope.a_index===$scope.active.length){
+			$scope.a_index = 0;
 		}
-		post['username'] = f.user.fields.user.fields.username;
-		// post['user']['username'] = f.user.fields.user.fields.username;
-		// post['user']['name'] = f.user.fields.user.fields.last_name+f.user.fields.user.fields.first_name;
-		// post['user']['weichat'] = f.user.fields.weichat;
-		// post['user']['phone'] = f.user.fields.phone;
-		// post['user']['email'] = f.user.fields.user.fields.email;
-		// post['user']['last_login'] = 
-		post['createtime'] = niceTimeStr(f.createtime);
-		posts.push(post);
+		$scope.active[$scope.a_index] = true;
 	}
-})();
-console.log(posts);
+	$scope.keyPressed = function(evt){
+		//console.log(evt);
+		switch(evt.keyCode){
+			case 37: //left
+				shift_i(true);break;
+			case 39: //right
+				shift_i(false);break;
+			default:;
+		}
+	};
+});
+
 // test = posts;
 myApp.controller("SlideController", function($scope, $http){
-	$scope.posts = posts;
+	var last_id=0;//infos = {{ posts|safe }},
+	$scope.posts = [];
+	function generatePosts(infos){
+		var post,f;
+		for (var i = 0; i < infos.length; i++) {
+			post = {};
+			post['id'] = infos[i].pk;
+			f = infos[i].fields;
+			post['cat'] = f.cat;
+			post['name'] = f.name;
+			post['words'] = f.words;
+			if( f.cat === 'p' ){
+				post['url'] = 'http://xiner.qiniudn.com'+f.url+'?imageView2/0/w/300/h/200'
+			}
+			else{
+				post['url'] = f.url;
+			}
+			post['username'] = f.user.fields.user.fields.username;
+			// post['user']['username'] = f.user.fields.user.fields.username;
+			// post['user']['name'] = f.user.fields.user.fields.last_name+f.user.fields.user.fields.first_name;
+			// post['user']['weichat'] = f.user.fields.weichat;
+			// post['user']['phone'] = f.user.fields.phone;
+			// post['user']['email'] = f.user.fields.user.fields.email;
+			// post['user']['last_login'] = 
+			post['createtime'] = niceTimeStr(f.createtime);
+			$scope.posts.push(post);
+		}
+		last_id = post['id'];
+	}
+	//generatePosts(infos);
+	$scope.myPagingFunction = function(){
+		if (_load_lock){
+			console.log('locked');
+			return;
+		}
+		_load_lock = true;
+		setTimeout('_load_lock=false',500);
+		if(last_id === 1) return;
+		$http.get('/infos/json?last_id='+last_id).success(function(data){
+			generatePosts(data);
+		});
+		if(last_id < 7 ) last_id =1;
+	}
 });
-+function($){$(function(){
-	$('.slide-atom .words').each(function(){
-		$(this).css('background-color','rgba('+randC()+','+randC()+','+randC()+',0.4)');
+
+myApp.controller('MembersController',function($scope,$http){
+	$scope.members=[];
+	$http.get('/members/json').success(function(res){
+		console.log(res);
 	});
-});}(jQuery);
+});
 </script>
 {% endblock %}

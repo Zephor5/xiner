@@ -10,5 +10,6 @@ urlpatterns = patterns('',
     # url(r'^blog/', include('blog.urls')),
     url(r'^set_timezone', 'xiner.views.set_timezone', name='TimezoneSetting' ),
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^members/', 'members.views.all', name='all')
+    url(r'^members/', include('members.urls')),
+    url(r'^infos/',include('info.urls'))
 )

@@ -14,12 +14,13 @@ body{
 }
 </style>
 </head>
-<body>{% block body %}main{% endblock %}
+<body ng-app="xiner">{% block body %}main{% endblock %}
+</body>
 <script src="//lib.sinaapp.com/js/jquery/1.9.1/jquery-1.9.1.min.js"></script>
-<script src="//lib.sinaapp.com/js/bootstrap/3.0.0/js/bootstrap.min.js"></script>
 <script src="//lib.sinaapp.com/js/angular.js/angular-1.2.19/angular.min.js"></script>
+<script src="//xiner.qiniudn.com/static/ui-bootstrap-tpls-0.11.0.min.js"></script>
+<script src="//lib.sinaapp.com/js/angular.js/angular-1.2.19/angular-animate.min.js"></script>
 <!-- <script src="//xiner.qiniudn.com/static/plupload.full.min.js"></script>
 <script src="//xiner.qiniudn.com/static/qiniu.js"></script> -->
 {% block scripts %}{% endblock %}
-</body>
 </html>

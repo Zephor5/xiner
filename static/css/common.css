@@ -1,5 +1,60 @@
+html,body{
+	height: 100%;
+}
+
+tab{
+	display: block;
+}
+
 span{
 	display: inline-block;
+}
+
+.main{
+	min-height: 100%;
+	background-color: rgba(234,222,123,0.4);
+	margin-top: 100px;
+	display: block;
+}
+
+.slide-nav{
+	height: 100px;
+	text-align: center;
+	padding: 30px 0;
+	position: fixed;
+	width: 100%;
+	top:0;
+	background-color: rgba(234,222,123,0.4);
+	z-index: 999;
+}
+
+.slide-nav ul{
+	margin: 0;
+	display: inline-block;
+	list-style: none;
+	padding: 0;
+}
+
+.slide-nav li{
+	padding: 0;
+	margin: 0 10px;
+	float: left;
+	background-color: white;
+	width: 20px;
+	height: 20px;
+	cursor: pointer;
+}
+.slide-nav li.active{
+	background-color: red;
+}
+
+.main .xiner-slide{
+	padding: 15px;
+	background-color: white;
+}
+
+.slide-atom{
+	margin-bottom: 10px;
 }
 
 .slide-atom>div{
@@ -12,7 +67,7 @@ span{
 	word-wrap: break-word;
 	font-size: 22px;
 	text-indent: 44px;
-	padding: 10px;
+	padding: 10px 20px;
 	height: 200px;
 }
 
@@ -27,4 +82,25 @@ span{
 	background-color: rgba(255,255,255,0.6);
 	width:100%;
 	text-indent: 28px;
+}
+
+.xiner-slide .slide-atom.ng-move,
+.xiner-slide .slide-atom.ng-enter,
+.xiner-slide .slide-atom.ng-leave {
+  -webkit-transition:width linear 0.1s;
+  transition:width linear 0.1s;
+}
+
+.xiner-slide .slide-atom.ng-leave.ng-leave-active,
+.xiner-slide .slide-atom.ng-move,
+.xiner-slide .slide-atom.ng-enter {
+  opacity:0;
+  width: 0;
+}
+
+.slide-atom.ng-leave,
+.slide-atom.ng-move.ng-move-active,
+.slide-atom.ng-enter.ng-enter-active {
+  opacity:1;
+  width: 25%;
 }
